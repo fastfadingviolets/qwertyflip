@@ -18,8 +18,8 @@ const (
 	ROWS     = 4
 )
 
-func NewFlipper() Flipper {
-	flipper := Flipper{
+func NewFlipper() *Flipper {
+	flipper := &Flipper{
 		keyboard: "1234567890qwertyuiopasdfghjkl;zxcvbnm,./",
 		keyMap:   make(map[rune]int),
 		builder:  strings.Builder{},
@@ -77,18 +77,33 @@ func (f *Flipper) Shift(places int, line string) string {
 	return f.builder.String()
 }
 
-func (f *Flipper) RunCommand(command, line string) (string, error) {
-	components := strings.Split(command, ",")
-	for _, component := range components {
-		if component == "H" {
-			line = f.HorizontalFlip(line)
-		} else if component == "V" {
-			line = f.VerticalFlip(line)
-		} else if places, err := strconv.Atoi(component); err == nil {
-			line = f.Shift(places, line)
+type flipperFunction func(string) string
+
+type Transform []flipperFunction
+
+func (f *Flipper) ParseCommand(command string) (Transform, error) {
+	parts := strings.Split(command, ",")
+	retval := make([]flipperFunction, len(parts))
+	for i, part := range parts {
+		if part == "H" {
+			retval[i] = f.HorizontalFlip
+		} else if part == "V" {
+			retval[i] = f.VerticalFlip
+		} else if places, err := strconv.Atoi(part); err == nil {
+			retval[i] = func(line string) string { return f.Shift(places, line) }
+		} else if part == "" {
+			// just in case there's a trailing comma or similar
+			retval[i] = func(line string) string { return line }
 		} else {
-			return "", fmt.Errorf("%s is an invalid command", component)
+			return nil, fmt.Errorf("%s is an invalid command", part)
 		}
 	}
-	return line, nil
+	return retval, nil
+}
+
+func (t Transform) Apply(line string) string {
+	for _, funct := range t {
+		line = funct(line)
+	}
+	return line
 }

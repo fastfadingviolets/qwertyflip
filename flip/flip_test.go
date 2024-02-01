@@ -86,15 +86,35 @@ func TestCommands(t *testing.T) {
 		{"asdf", "V,-3"}:         "890q",
 		{"3 Dragons?", "V,-8,H"}: "h Dt84;c7?",
 		{"ミaカbサc", "-28,H"}:      "ミ,カ4サ6",
+		{"1", "H,-3,V"}:          "m",
+		{"1", ""}:                "1",
 	}
 	for test, expected := range tests {
 		t.Run(test.line+"_"+test.command, func(t *testing.T) {
-			result, err := flipper.RunCommand(test.command, test.line)
+			transform, err := flipper.ParseCommand(test.command)
 			if err != nil {
 				t.Fatal(err)
 			}
+			result := transform.Apply(test.line)
 			if result != expected {
 				t.Fatalf("Expected %s got %s", expected, result)
+			}
+		})
+	}
+}
+
+func TestBadCommands(t *testing.T) {
+	flipper := flip.NewFlipper()
+	tests := []string{
+		"HOORAY",
+		"H,V,T",
+		"-30,-3f",
+	}
+	for _, test := range tests {
+		t.Run(test, func(t *testing.T) {
+			_, err := flipper.ParseCommand(test)
+			if err == nil {
+				t.Fatalf("Expected %s to error but it didn't", test)
 			}
 		})
 	}
