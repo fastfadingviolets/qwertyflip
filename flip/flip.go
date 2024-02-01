@@ -13,11 +13,6 @@ type Flipper struct {
 	builder  strings.Builder
 }
 
-const (
-	ROW_SIZE = 10
-	ROWS     = 4
-)
-
 func NewFlipper() *Flipper {
 	flipper := &Flipper{
 		keyboard: "1234567890qwertyuiopasdfghjkl;zxcvbnm,./",

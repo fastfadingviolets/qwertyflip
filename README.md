@@ -2,6 +2,8 @@
 
 qwertyflip transforms input files by flipping their characters based on keyboard positions.
 
+Download it from the [release page](https://github.com/fastfadingviolets/qwertyflip/releases/tag/v0.0.1)
+
 You can run it as:
 
 ```bash
